@@ -1,5 +1,7 @@
 # 30-minutes-of-blockchain
 
+[![license badge](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](LICENSE)  
+
 This project collects some notes about blockchain implementation.  
 
 ## Contents    
