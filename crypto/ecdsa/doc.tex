@@ -1,0 +1,166 @@
+%TEX program=xelatex
+\documentclass[a4paper,10pt]{article}
+
+\usepackage{ctex}
+\usepackage{adjustbox}
+\usepackage{amsmath}
+\usepackage[linesnumbered,ruled,vlined]{algorithm2e}
+\usepackage[backend=biber,style=alphabetic]{biblatex}
+\usepackage[margin=16mm]{geometry}
+\usepackage{hyperref}
+\usepackage{indentfirst}
+\usepackage{listings}
+\usepackage{tcolorbox}
+\usepackage{xcolor}
+
+\title{ECDSA签名算法}
+\author{Sammy}
+\date{2018-04-10}
+
+\addbibresource{REFERENCES.bib}
+\hypersetup{
+    colorlinks=true,
+		citecolor=blue,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=blue,
+}
+\urlstyle{same}
+
+\lstset{
+  basicstyle=\ttfamily,           % the size of the fonts that are used for the mkeyword
+  numbers=left,
+  tabsize=2,
+  breaklines=true,
+  keywordstyle=\color{magenta},          % keyword style
+  commentstyle=\color{red!70!green},       % comment style
+  stringstyle=\color{blue},          % string literal style
+  frame=trBL,     
+  numberstyle=\footnotesize,
+%  morecomment=[l]{\#},
+  morecomment=[s]{/*}{*/},
+  escapeinside={(*@}{@*)},
+  showspaces=false,
+}
+
+% style for keywords
+\newcommand{\primaryKW}[1]{\textcolor{blue}{\lstinline!#1!}}
+\newcommand{\successKW}[1]{\textcolor{green}{\lstinline!#1!}}
+\newcommand{\infoKW}[1]{\textcolor{cyan}{\lstinline!#1!}}
+\newcommand{\warningKW}[1]{\textcolor{orange}{\lstinline!#1!}}
+\newcommand{\dangerKW}[1]{\textcolor{red}{\lstinline!#1!}}
+
+% badge
+\newcommand{\badge}[2]{{\scriptsize\tcbox[arc=1.5mm,colback=#1,colframe=#1,coltext=white,height=4mm,on line,valign=center,left=-1mm,right=-1mm]{\textbf{#2}}}}
+
+\begin{document}
+\maketitle
+
+\section{公开参数}
+ECDSA基于素数域的椭圆曲线，相关参数如\tablename~\ref{tab-param}所示  
+\begin{table}[!htbp]
+  \centering
+  \caption{ECDSA涉及的公开参数}\label{tab-param}
+  \begin{tabular}{rl}
+    \hline
+    符号 &含义 \\
+    \hline
+    \(O\) &无穷远点 \\
+    \(q\) &一个大素数 \\ 
+    \(b\) &椭圆曲线方程\(y^2\equiv x^3-3x+b\)中的常数 \\
+    \(G\) &基点\((x_g,y_g)\)，选定的曲线上的一个点 \\
+    \(n\) &\(G\)的阶，满足\(nG=O\) \\
+    \(H\) &哈希算法 \\
+    \hline
+  \end{tabular}
+\end{table}
+
+\section{具体算法}
+组成算法的3个关键流程分别如算法~\ref{algo-keygen}、\ref{algo-sign}、\ref{algo-verify}所示
+
+\begin{algorithm}
+  \DontPrintSemicolon
+  \SetKwInOut{Input}{输入}
+  \SetKwInOut{Output}{输出}
+
+  \Output{私钥\(d\)，公钥\(Q\)}
+  \BlankLine
+
+  \(d\in_R [1,n-1]\) \tcc*[r]{随机生成一个整数\(d\)}
+  \(Q\leftarrow d\cdot G\)\;
+  \caption{ECDSA密钥生成}\label{algo-keygen}
+\end{algorithm}
+
+\begin{adjustbox}{left=0.45\linewidth,minipage=0.45\linewidth,valign=T}
+  \begin{algorithm}[H]
+    \DontPrintSemicolon
+    \SetKwInOut{Input}{输入}
+    \SetKwInOut{Output}{输出}
+
+    \Input{私钥\(d\)，消息\(m\)}
+    \Output{签名\((r,s)\)}
+    \BlankLine
+
+    \(r\leftarrow 0\)\;
+    \While{\(r=0\)}{
+      \(k\in_R [1,n-1]\)\;
+      \(P=(x,y)=k\cdot G\)\;
+      \(r\equiv x\pmod{n}\)\;
+    }
+    \(e\leftarrow H(m)\)\;
+    \(s\leftarrow 0\)\;
+    \While{\(s=0\)}{
+      \(s\leftarrow k^{-1}(e+d\cdot r)\pmod{n}\)\;
+    }
+
+    \caption{ECDSA签名}\label{algo-sign}
+  \end{algorithm}
+\end{adjustbox}  
+\begin{adjustbox}{left=0.45\linewidth,minipage=0.45\linewidth,valign=T}
+  \begin{algorithm}[H]
+    \DontPrintSemicolon
+    \SetKwInOut{Input}{输入}
+    \SetKwInOut{Output}{输出}
+
+    \Input{公钥\(Q\)，消息\(m\)，签名\((r,s)\)}
+    \Output{\(Y\)表示签名合法，\(N\)表示签名非法}
+    \BlankLine
+
+    \If{\(r\not\in[1,n-1]\)或\(s\not\in[1,n-1]\)}{
+      \Return{\(N\)}\;
+    }
+    \(e\leftarrow H(m)\)\;
+    \(w\leftarrow s^{-1}\pmod{n}\)\;
+    \(A\leftarrow (x_1,y_1)=ewG+rwQ\)\;
+    \If{\(X=0\)}{
+      \Return{\(N\)};
+    }
+    \(v\leftarrow x_1\pmod{n}\)\;
+    \lIf{\(v=r\)}{ \Return{\(Y\)}}
+    \lElse{ \Return{\(N\)} }
+
+    \caption{ECDSA验签}\label{algo-verify}
+  \end{algorithm}
+\end{adjustbox}  
+
+\section{正确性证明}
+\[
+  \begin{aligned}  
+    &s \equiv k^{-1}(e+d\cdot r)\pmod{n} \\
+    \Rightarrow &k \equiv s^{-1}(e+d\cdot r)\pmod{n} \\
+    \Rightarrow &k \equiv (s^{-1}\cdot e+s^{-1}\cdot d\cdot r)\pmod{n} \\
+    \Rightarrow &k \equiv (e\cdot w+r\cdot w\cdot d)\pmod{n} \\
+    \Rightarrow &kG \equiv (e\cdot w+r\cdot w\cdot d)\cdot G\pmod{n} \\
+    \Rightarrow &kG \equiv e\cdot w\cdot G +r\cdot w\cdot d\cdot G \pmod{n} \\
+    \Rightarrow &kG \equiv e\cdot w\cdot G +r\cdot w\cdot Q \pmod{n} \\
+    \Rightarrow &P=A \\
+    \Rightarrow &r\equiv x\equiv x_1\equiv v\pmod{n}
+  \end{aligned}  
+\]
+
+\section{Go语言的ECDSA库}
+Go语言crypto/elliptic包提供了FIPS 186-3标准规定的3种曲线P224、P256、P384、P521，我们根据自己的安全强度需求直接利用这些曲线就行。其中，紧接P的数字表示以比特为单位衡量的安全强度，越大越强。
+
+相应的演示程序如\lstinline!ecdsa_test.go!的\lstinline!TestECDSA!函数。
+
+\end{document}

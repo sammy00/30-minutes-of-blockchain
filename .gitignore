@@ -4,3 +4,11 @@
 
 # db
 */leveldb/db/
+
+# LATEX 
+*.aux
+*.bcf
+*.doc
+*.log
+*.out
+*.run.xml
