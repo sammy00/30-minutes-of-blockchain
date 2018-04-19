@@ -132,7 +132,7 @@ ECDSA基于素数域的椭圆曲线，相关参数如\tablename~\ref{tab-param}�
     \(e\leftarrow H(m)\)\;
     \(w\leftarrow s^{-1}\pmod{n}\)\;
     \(A\leftarrow (x_1,y_1)=ewG+rwQ\)\;
-    \If{\(X=0\)}{
+    \If{\(A=O\)}{
       \Return{\(N\)};
     }
     \(v\leftarrow x_1\pmod{n}\)\;
@@ -159,7 +159,7 @@ ECDSA基于素数域的椭圆曲线，相关参数如\tablename~\ref{tab-param}�
 \]
 
 \section{Go语言的ECDSA库}
-Go语言crypto/elliptic包提供了FIPS 186-3标准规定的3种曲线P224、P256、P384、P521，我们根据自己的安全强度需求直接利用这些曲线就行。其中，紧接P的数字表示以比特为单位衡量的安全强度，越大越强。
+Go语言crypto/elliptic包提供了FIPS 186-3标准规定的4种曲线P224、P256、P384和P512，我们根据自己的安全强度需求直接利用这些曲线就行。其中，紧接P的数字表示以比特为单位衡量的安全强度，越大越强。
 
 相应的演示程序如\lstinline!ecdsa_test.go!的\lstinline!TestECDSA!函数。
 
