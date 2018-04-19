@@ -101,15 +101,16 @@ ECDSA基于素数域的椭圆曲线，相关参数如\tablename~\ref{tab-param}�
     \Output{签名\((r,s)\)}
     \BlankLine
 
-    \(r\leftarrow 0\)\;
-    \While{\(r=0\)}{
-      \(k\in_R [1,n-1]\)\;
-      \(P=(x,y)=k\cdot G\)\;
-      \(r\equiv x\pmod{n}\)\;
-    }
-    \(e\leftarrow H(m)\)\;
     \(s\leftarrow 0\)\;
     \While{\(s=0\)}{
+      \(r\leftarrow 0\)\;
+      \While{\(r=0\)}{
+        \(k\in_R [1,n-1]\)\;
+        \(P=(x,y)=k\cdot G\)\;
+        \(r\equiv x\pmod{n}\)\;
+      }
+      \(e\leftarrow H(m)\)\;
+
       \(s\leftarrow k^{-1}(e+d\cdot r)\pmod{n}\)\;
     }
 
